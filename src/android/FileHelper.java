@@ -10,7 +10,7 @@
          http://www.apache.org/licenses/LICENSE-2.0
 
        Unless required by applicable law or agreed to in writing,
-       software distributed under the License is distributed on an
+       software distributed under the License is distributed on anFV
        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
        KIND, either express or implied.  See the License for the
        specific language governing permissions and limitations
@@ -28,6 +28,8 @@ import org.apache.cordova.LOG;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 
 public class FileHelper {
@@ -95,7 +97,7 @@ public class FileHelper {
         } else if (uriString.startsWith("file://")) {
             int question = uriString.indexOf("?");
             if (question > -1) {
-            	uriString = uriString.substring(0,question);
+                uriString = uriString.substring(0,question);
             }
             if (uriString.startsWith("file:///android_asset/")) {
                 Uri uri = Uri.parse(uriString);
@@ -107,6 +109,30 @@ public class FileHelper {
         } else {
             return new FileInputStream(getRealPath(uriString, cordova));
         }
+    }
+
+    public static long copy(InputStream input, OutputStream output) throws IOException {
+        int bufferSize = 1024 * 4;
+        byte[] buffer = new byte[bufferSize];
+        long count = 0;
+        int n = 0;
+
+        while (-1 != (n = input.read(buffer, 0, bufferSize))) {
+            output.write(buffer, 0, n);
+            count += n;
+        }
+
+        return count;
+    }
+
+    public static byte[] toByteArray(Uri uri) throws IOException {
+
+        FileInputStream fis = new FileInputStream(FileHelper.stripFileProtocol(uri.toString()));
+        ByteArrayOutputStream fos = new ByteArrayOutputStream();
+
+        FileHelper.copy(fis, fos);
+
+        return fos.toByteArray();
     }
 
     /**
@@ -136,7 +162,7 @@ public class FileHelper {
         }
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
     }
-    
+
     /**
      * Returns the mime type of the data specified by the given URI string.
      *
